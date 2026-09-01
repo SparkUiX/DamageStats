@@ -1,5 +1,6 @@
 package com.u1x.damagestats.trace;
 
+import com.u1x.damagestats.DamageStatsText;
 import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
@@ -63,7 +64,8 @@ public final class DamageContributionCalculator {
         String note = step.note() == null ? "" : step.note();
         if (step.stage() == DamageStage.ENCHANTMENT_BONUS
                 || (step.stage() == DamageStage.ATTACK_ATTRIBUTE
-                && (note.startsWith("加法 ") || note.startsWith("基础乘算 ")))) {
+                && ("add".equals(DamageStatsText.operationTag(note))
+                || note.startsWith("加法 ") || note.startsWith("基础乘算 ")))) {
             return Operation.ADD;
         }
         return Operation.MULTIPLY;

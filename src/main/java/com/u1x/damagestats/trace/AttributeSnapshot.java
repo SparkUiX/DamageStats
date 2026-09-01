@@ -1,5 +1,6 @@
 package com.u1x.damagestats.trace;
 
+import com.u1x.damagestats.DamageStatsText;
 import com.google.common.collect.Multimap;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -37,7 +38,7 @@ record AttributeSnapshot(double baseValue, double totalValue, List<ModifierSnaps
 
     static ContributionSource itemSource(ItemStack stack, String kind) {
         if (stack.isEmpty()) {
-            return ContributionSource.vanilla("empty", "空手");
+            return ContributionSource.vanilla("empty", DamageStatsText.encoded("source.empty_hand"));
         }
         ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
         return new ContributionSource(id.getNamespace(), kind, id.toString(), stack.getHoverName().getString(), stack);

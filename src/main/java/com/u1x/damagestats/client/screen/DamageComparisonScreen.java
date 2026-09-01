@@ -76,7 +76,8 @@ public final class DamageComparisonScreen extends Screen {
                 ItemStack manualIcon = ClientAnnotationStore.icon(representative);
                 String manual = manualIcon.isEmpty() ? "" : DamageStatsText.string("label.manual_annotation") + " ";
                 graphics.drawString(font, status + " " + stageName(representative.stage()) + "  ·  "
-                        + manual + representative.source().displayName() + "  (" + representative.source().modId() + ")",
+                        + manual + DamageStatsText.resolve(representative.source().displayName())
+                        + "  (" + representative.source().modId() + ")",
                         left + 5, y + 5, color, false);
 
                 String firstValue = row.first.isEmpty() ? "--" : values(row.first);
@@ -111,7 +112,7 @@ public final class DamageComparisonScreen extends Screen {
                 }
 
                 if (representative.note() != null && !representative.note().isBlank()) {
-                    graphics.drawString(font, shorten(representative.note(), right - left - 10),
+                    graphics.drawString(font, shorten(DamageStatsText.resolve(representative.note()), right - left - 10),
                             left + 5, y + 58, 0x888888, false);
                 }
             }

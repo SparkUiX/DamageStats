@@ -56,9 +56,11 @@ final class DamageStepDetailScreen extends Screen {
             result.add(DamageStatsText.text("screen.detail.entry", i + 1, step.before(), step.after()));
             result.add(DamageStatsText.text("screen.detail.mod_kind", step.source().modId(), step.source().kind()));
             result.add(DamageStatsText.text("screen.detail.source_id", step.source().id()));
-            result.add(DamageStatsText.text("screen.detail.display_name", step.source().displayName()));
+            result.add(DamageStatsText.text("screen.detail.display_name",
+                    DamageStatsText.component(step.source().displayName())));
             result.add(DamageStatsText.text("screen.detail.note",
-                    step.note() == null || step.note().isBlank() ? DamageStatsText.string("label.none") : step.note()));
+                    step.note() == null || step.note().isBlank()
+                            ? DamageStatsText.text("label.none") : DamageStatsText.component(step.note())));
             result.add(Component.literal(" "));
         }
         return result;

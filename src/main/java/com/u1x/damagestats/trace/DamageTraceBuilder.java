@@ -1,5 +1,7 @@
 package com.u1x.damagestats.trace;
 
+import com.u1x.damagestats.DamageStatsText;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -78,7 +80,7 @@ final class DamageTraceBuilder {
         livingAttackAmount = amount;
         buildAttackConstruction(amount);
         steps.add(step(DamageStage.LIVING_ATTACK, amount, amount,
-                ContributionSource.vanilla("living_attack", "LivingAttackEvent 入口"),
+                ContributionSource.vanilla("living_attack", tr("source.living_attack")),
                 AttributionConfidence.EXACT, damageType(source)));
         return true;
     }
@@ -95,9 +97,9 @@ final class DamageTraceBuilder {
         if (hurtCheckpointCaptured) {
             addChanged(DamageStage.LIVING_HURT_EVENT, hurtCheckpointAmount, after,
                     new ContributionSource("unknown", "event_priority", "living_hurt_tail",
-                            "LivingHurtEvent LOWEST 后的剩余修改"),
+                            tr("source.living_hurt_tail")),
                     AttributionConfidence.UNKNOWN,
-                    "可能类: LOWEST 优先级中位于 Damage Stats 采样器之后的监听器");
+                    tr("note.possible_lowest_after_sampler"));
             hurtCheckpointAmount = after;
             return;
         }
@@ -107,46 +109,46 @@ final class DamageTraceBuilder {
                     apothic.source(), apothic.confidence(), apothic.note());
         } else {
             addChanged(DamageStage.LIVING_HURT_EVENT, before, after,
-                    new ContributionSource("forge", "event", "living_hurt", "LivingHurtEvent 中的 mod 修改"),
-                    AttributionConfidence.UNKNOWN, "该阶段可能包含多个监听器");
+                    new ContributionSource("forge", "event", "living_hurt", tr("source.living_hurt_modification")),
+                    AttributionConfidence.UNKNOWN, tr("note.multiple_listeners"));
         }
     }
 
     void recordArmor(float before, float after) {
         mitigationAfter = after;
         addChanged(DamageStage.ARMOR, before, after,
-                new ContributionSource("minecraft", "pipeline_stage", "armor", "护甲与韧性阶段"),
-                AttributionConfidence.EXACT, "输入输出精确；实际算法可能已被其他 mod 的 Mixin 或属性库替换");
+                new ContributionSource("minecraft", "pipeline_stage", "armor", tr("source.armor")),
+                AttributionConfidence.EXACT, tr("note.exact_io_algorithm_may_be_modified"));
     }
 
     void recordMagic(float before, float after) {
         mitigationAfter = after;
         addChanged(DamageStage.MAGIC, before, after,
-                new ContributionSource("minecraft", "pipeline_stage", "magic_mitigation", "抗性与保护阶段"),
-                AttributionConfidence.EXACT, "输入输出精确；实际算法可能已被其他 mod 的 Mixin 或属性库替换");
+                new ContributionSource("minecraft", "pipeline_stage", "magic_mitigation", tr("source.magic")),
+                AttributionConfidence.EXACT, tr("note.exact_io_algorithm_may_be_modified"));
     }
 
     void recordDamageEvent(float before, float after) {
         float beforeAbsorption = !Float.isNaN(mitigationAfter) ? mitigationAfter : hurtEventAfter;
         if (!Float.isNaN(beforeAbsorption) && before < beforeAbsorption - EPSILON) {
             addChanged(DamageStage.ABSORPTION, beforeAbsorption, before,
-                    ContributionSource.vanilla("absorption", "吸收生命"), AttributionConfidence.INFERRED,
-                    "由最终减伤结果与 LivingDamageEvent 入口差额计算");
+                    ContributionSource.vanilla("absorption", tr("source.absorption")), AttributionConfidence.INFERRED,
+                    tr("note.absorption_inferred"));
         }
         damageEventAfter = after;
         if (exactDamageListenerCaptured) return;
         if (damageCheckpointCaptured) {
             addChanged(DamageStage.LIVING_DAMAGE_EVENT, damageCheckpointAmount, after,
                     new ContributionSource("unknown", "event_priority", "living_damage_tail",
-                            "LivingDamageEvent LOWEST 后的剩余修改"),
+                            tr("source.living_damage_tail")),
                     AttributionConfidence.UNKNOWN,
-                    "可能类: LOWEST 优先级中位于 Damage Stats 采样器之后的监听器");
+                    tr("note.possible_lowest_after_sampler"));
             damageCheckpointAmount = after;
             return;
         }
         addChanged(DamageStage.LIVING_DAMAGE_EVENT, before, after,
-                new ContributionSource("forge", "event", "living_damage", "LivingDamageEvent 中的 mod 修改"),
-                AttributionConfidence.UNKNOWN, "该阶段可能包含多个监听器");
+                new ContributionSource("forge", "event", "living_damage", tr("source.living_damage_modification")),
+                AttributionConfidence.UNKNOWN, tr("note.multiple_listeners"));
     }
 
     DamageTrace finish() {
@@ -158,21 +160,21 @@ final class DamageTraceBuilder {
         if (primarySource != null && Float.isNaN(damageEventAfter)) {
             if (!Float.isNaN(hurtEventAfter) && hurtEventAfter > EPSILON) {
                 steps.add(step(DamageStage.PIPELINE_TERMINATED, hurtEventAfter, hurtEventAfter,
-                        ContributionSource.unknown("伤害管线在 LivingHurtEvent 后提前结束"),
+                        ContributionSource.unknown(tr("source.pipeline_terminated")),
                         AttributionConfidence.INFERRED,
-                        "目标可能是训练假人或使用自定义生命/伤害代理；不视为格挡"));
+                        tr("note.custom_health_proxy")));
                 canceled = false;
             } else {
                 steps.add(step(DamageStage.CANCELED_OR_BLOCKED, livingAttackAmount, 0.0F,
-                        ContributionSource.unknown("伤害被格挡、免疫或在中途取消"),
-                        AttributionConfidence.INFERRED, "未进入 LivingHurtEvent/最终伤害阶段"));
+                        ContributionSource.unknown(tr("source.canceled")),
+                        AttributionConfidence.INFERRED, tr("note.never_entered_final_damage")));
             }
         }
         steps.add(step(DamageStage.ACTUAL_HEALTH_LOSS, calculated, actualLoss,
-                ContributionSource.vanilla("health", "实际生命损失"), AttributionConfidence.EXACT,
+                ContributionSource.vanilla("health", tr("source.actual_health_loss")), AttributionConfidence.EXACT,
                 actualLoss <= EPSILON && calculated > EPSILON
-                        ? "目标未通过原版 health 字段暴露扣血；可能使用假人/自定义生命"
-                        : calculated > actualLoss + EPSILON ? "包含过量伤害或后续阻止" : ""));
+                        ? tr("note.health_not_exposed")
+                        : calculated > actualLoss + EPSILON ? tr("note.overkill_or_prevented") : ""));
         return new DamageTrace(traceId, 0L, attacker.getUUID(), attacker.getGameProfile().getName(),
                 target.getId(), target.getDisplayName().getString(), weapon, gameTime,
                 calculated, actualLoss, canceled, steps);
@@ -181,7 +183,7 @@ final class DamageTraceBuilder {
     private void buildAttackConstruction(float observedAmount) {
         float value = (float) attackAttribute.baseValue();
         steps.add(step(DamageStage.ATTACK_ATTRIBUTE, 0.0F, value,
-                ContributionSource.vanilla("attack_damage_base", "攻击伤害基础值"),
+                ContributionSource.vanilla("attack_damage_base", tr("source.attack_damage_base")),
                 AttributionConfidence.EXACT, ""));
 
         List<AttributeSnapshot.ModifierSnapshot> modifiers = new ArrayList<>(attackAttribute.modifiers());
@@ -192,8 +194,8 @@ final class DamageTraceBuilder {
                 float next = value + (float) modifier.amount();
                 steps.add(step(DamageStage.ATTACK_ATTRIBUTE, value, next, modifier.source(),
                         modifier.source().modId().equals("unknown") ? AttributionConfidence.UNKNOWN : AttributionConfidence.EXACT,
-                        "加法 " + signed((float) modifier.amount()) + "；" + modifier.name()
-                                + " [" + modifier.id() + "]"));
+                        DamageStatsText.encodedOperation("add", "note.attribute.addition",
+                                signed((float) modifier.amount()), modifier.name(), modifier.id())));
                 value = next;
             }
         }
@@ -203,8 +205,8 @@ final class DamageTraceBuilder {
                 float next = value + (float) (additionBase * modifier.amount());
                 steps.add(step(DamageStage.ATTACK_ATTRIBUTE, value, next, modifier.source(),
                         modifier.source().modId().equals("unknown") ? AttributionConfidence.UNKNOWN : AttributionConfidence.EXACT,
-                        "基础乘算 " + signed((float) modifier.amount()) + "（本次 "
-                                + signed(next - value) + "）；" + modifier.name() + " [" + modifier.id() + "]"));
+                        DamageStatsText.encodedOperation("add", "note.attribute.multiply_base",
+                                signed((float) modifier.amount()), signed(next - value), modifier.name(), modifier.id())));
                 value = next;
             }
         }
@@ -213,16 +215,17 @@ final class DamageTraceBuilder {
                 float next = value * (1.0F + (float) modifier.amount());
                 steps.add(step(DamageStage.ATTACK_ATTRIBUTE, value, next, modifier.source(),
                         modifier.source().modId().equals("unknown") ? AttributionConfidence.UNKNOWN : AttributionConfidence.EXACT,
-                        "总乘算 ×" + DamageTraceFormatter.number(1.0F + (float) modifier.amount())
-                                + "；" + modifier.name() + " [" + modifier.id() + "]"));
+                        DamageStatsText.encodedOperation("multiply", "note.attribute.multiply_total",
+                                DamageTraceFormatter.number(1.0F + (float) modifier.amount()),
+                                modifier.name(), modifier.id())));
                 value = next;
             }
         }
 
         float cooled = value * (0.2F + cooldown * cooldown * 0.8F);
         addChanged(DamageStage.ATTACK_COOLDOWN, value, cooled,
-                ContributionSource.vanilla("attack_cooldown", "攻击冷却"), AttributionConfidence.EXACT,
-                "冷却强度 " + DamageTraceFormatter.number(cooldown));
+                ContributionSource.vanilla("attack_cooldown", tr("source.attack_cooldown")), AttributionConfidence.EXACT,
+                tr("note.cooldown_strength", DamageTraceFormatter.number(cooldown)));
         value = cooled;
 
         if (criticalActive && criticalModifier != 1.0F) {
@@ -230,7 +233,7 @@ final class DamageTraceBuilder {
             ApothicAttribution.Attribution attribution = criticalAttribution != null
                     ? criticalAttribution
                     : new ApothicAttribution.Attribution(
-                            ContributionSource.vanilla("critical_hit_event", "原版/Forge 暴击"),
+                            ContributionSource.vanilla("critical_hit_event", tr("source.critical")),
                             AttributionConfidence.EXACT,
                             "CriticalHitEvent ×" + DamageTraceFormatter.number(criticalModifier));
             addChanged(DamageStage.VANILLA_OR_FORGE_CRITICAL, value, critical,
@@ -242,15 +245,15 @@ final class DamageTraceBuilder {
         if (Math.abs(enchantment) > EPSILON) {
             float next = value + enchantment;
             steps.add(step(DamageStage.ENCHANTMENT_BONUS, value, next,
-                    ContributionSource.vanilla("enchantment_damage", "武器附魔伤害"),
+                    ContributionSource.vanilla("enchantment_damage", tr("source.enchantment_damage")),
                     AttributionConfidence.EXACT, ""));
             value = next;
         }
 
         if (Math.abs(value - observedAmount) > EPSILON) {
             steps.add(step(DamageStage.ATTACK_CONSTRUCTION_RESIDUAL, value, observedAmount,
-                    ContributionSource.unknown("攻击构造阶段的未归因变化"),
-                    AttributionConfidence.UNKNOWN, "可能来自直接注入 Player.attack 的 mod"));
+                    ContributionSource.unknown(tr("source.attack_residual")),
+                    AttributionConfidence.UNKNOWN, tr("note.direct_player_attack_injection")));
         }
     }
 
@@ -290,12 +293,15 @@ final class DamageTraceBuilder {
         if (inference != null) {
             source = inference.source();
             confidence = AttributionConfidence.INFERRED;
-            inferenceNote = "；" + inference.note();
+            inferenceNote = inference.note();
         }
-        String note = "实际事件监听器: " + listenerDescription
-                + (attributionNote == null || attributionNote.isBlank() ? "" : "；" + attributionNote)
-                + inferenceNote
-                + (canceledBefore != canceledAfter ? (canceledAfter ? "；取消了事件" : "；恢复了事件") : "");
+        MutableComponent noteComponent = DamageStatsText.text("note.actual_listener", listenerDescription);
+        appendNote(noteComponent, attributionNote);
+        appendNote(noteComponent, inferenceNote);
+        if (canceledBefore != canceledAfter) {
+            appendNote(noteComponent, tr(canceledAfter ? "note.event_canceled" : "note.event_restored"));
+        }
+        String note = DamageStatsText.encodedComponent(noteComponent);
         steps.add(step(stage, effectiveBefore, effectiveAfter, source, confidence, note));
         if (stage == DamageStage.LIVING_HURT_EVENT) {
             exactHurtListenerCaptured = true;
@@ -321,8 +327,8 @@ final class DamageTraceBuilder {
         if (!exactDamageListenerCaptured && Math.abs(before - amount) > EPSILON) {
             steps.add(step(DamageStage.LIVING_DAMAGE_EVENT, before, amount,
                     new ContributionSource("unknown", "event_priority", "living_damage_" + interval,
-                            "LivingDamageEvent " + interval + " 区间修改"),
-                    AttributionConfidence.UNKNOWN, "可能类: " + candidates));
+                            tr("source.living_damage_interval", interval)),
+                    AttributionConfidence.UNKNOWN, tr("note.possible_classes", DamageStatsText.component(candidates))));
         }
         damageCheckpointAmount = amount;
         damageCheckpointCaptured = true;
@@ -340,12 +346,13 @@ final class DamageTraceBuilder {
             ApothicAttribution.Attribution apothic = ApothicAttribution.hurtEvent(attacker, before, amount);
             if (apothic != null) {
                 steps.add(step(DamageStage.LIVING_HURT_EVENT, before, amount,
-                        apothic.source(), apothic.confidence(), apothic.note() + "；采样区间 " + interval));
+                        apothic.source(), apothic.confidence(), appendEncoded(apothic.note(),
+                                DamageStatsText.text("note.sample_interval", interval))));
             } else {
                 steps.add(step(DamageStage.LIVING_HURT_EVENT, before, amount,
                         new ContributionSource("unknown", "event_priority", "living_hurt_" + interval,
-                                "LivingHurtEvent " + interval + " 区间修改"),
-                        AttributionConfidence.UNKNOWN, "可能类: " + candidates));
+                                tr("source.living_hurt_interval", interval)),
+                        AttributionConfidence.UNKNOWN, tr("note.possible_classes", DamageStatsText.component(candidates))));
             }
         }
         hurtCheckpointAmount = amount;
@@ -369,6 +376,22 @@ final class DamageTraceBuilder {
 
     private static String signed(float value) {
         return (value >= 0.0F ? "+" : "") + DamageTraceFormatter.number(value);
+    }
+
+    private static String tr(String path, Object... arguments) {
+        return DamageStatsText.encoded(path, arguments);
+    }
+
+    private static void appendNote(MutableComponent target, String encodedOrLiteral) {
+        if (encodedOrLiteral == null || encodedOrLiteral.isBlank()) return;
+        target.append(DamageStatsText.text("note.separator"));
+        target.append(DamageStatsText.component(encodedOrLiteral));
+    }
+
+    private static String appendEncoded(String encodedOrLiteral, MutableComponent suffix) {
+        MutableComponent result = DamageStatsText.component(encodedOrLiteral);
+        result.append(DamageStatsText.text("note.separator")).append(suffix);
+        return DamageStatsText.encodedComponent(result);
     }
 
     private static String damageType(DamageSource source) {

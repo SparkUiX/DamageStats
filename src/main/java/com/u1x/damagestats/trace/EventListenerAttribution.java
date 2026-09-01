@@ -1,5 +1,6 @@
 package com.u1x.damagestats.trace;
 
+import com.u1x.damagestats.DamageStatsText;
 import net.minecraftforge.eventbus.ASMEventHandler;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.IEventListener;
@@ -38,7 +39,7 @@ final class EventListenerAttribution {
         Matcher matcher = ASM_DESCRIPTION.matcher(description);
         if (matcher.matches()) {
             return resolution(matcher.group(1), matcher.group(2), AttributionConfidence.EXACT,
-                    description, "注解事件监听器类与方法均由 Forge 精确提供");
+                    description, DamageStatsText.encoded("note.listener.asm_exact"));
         }
 
         Object consumer = capturedConsumer(listener);
@@ -50,19 +51,19 @@ final class EventListenerAttribution {
                 String method = methods.get(0);
                 return resolution(owner.getName(), method, AttributionConfidence.INFERRED,
                         description + " -> " + owner.getName() + "#" + method,
-                        "动态 Consumer 所属类精确；方法由唯一兼容事件参数推断");
+                        DamageStatsText.encoded("note.listener.unique_method"));
             }
             String method = methods.isEmpty() ? "<dynamic>" : "<" + String.join("|", methods) + ">";
             String note = methods.isEmpty()
-                    ? "已解开 Forge Lambda 并确定 Consumer 所属类，但没有唯一兼容方法"
-                    : "已解开 Forge Lambda 并确定 Consumer 所属类；可能方法: " + String.join(", ", methods);
+                    ? DamageStatsText.encoded("note.listener.no_unique_method")
+                    : DamageStatsText.encoded("note.listener.possible_methods", String.join(", ", methods));
             return resolution(owner.getName(), method, AttributionConfidence.INFERRED,
                     description + " -> " + owner.getName(), note);
         }
 
         String className = listener.getClass().getName().replaceAll("/0x[0-9a-fA-F]+$", "");
         return resolution(className, "invoke", AttributionConfidence.UNKNOWN, description,
-                "无法读取动态监听器捕获的 Consumer；仅保留包装类");
+                DamageStatsText.encoded("note.listener.wrapper_only"));
     }
 
     private static Resolution resolution(String className, String method, AttributionConfidence confidence,

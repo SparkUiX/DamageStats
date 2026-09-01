@@ -172,7 +172,8 @@ public final class DamageTraceScreen extends Screen {
         }
         String collapsedMarker = isExpanded(group.key) ? "▼ " : "▶ ";
         String manual = annotation.isEmpty() ? "" : DamageStatsText.string("label.manual_annotation") + " ";
-        String sourceLine = collapsedMarker + manual + source.displayName() + "  ·  " + modName(source.modId());
+        String sourceLine = collapsedMarker + manual + DamageStatsText.resolve(source.displayName())
+                + "  ·  " + modName(source.modId());
         graphics.drawString(font, shorten(sourceLine, right - textX - 5), textX, y + 20, 0xE0E0E0, false);
 
         if (isExpanded(group.key)) {
@@ -185,7 +186,7 @@ public final class DamageTraceScreen extends Screen {
                 graphics.drawString(font, shorten(classLine, right - left - 14), left + 7, detailY + 3,
                         detail.confidence() == AttributionConfidence.EXACT ? 0xA8A8A8 : 0xFFD35A, false);
                 String note = detail.note() == null || detail.note().isBlank()
-                        ? DamageStatsText.string("label.no_note") : detail.note();
+                        ? DamageStatsText.string("label.no_note") : DamageStatsText.resolve(detail.note());
                 graphics.drawString(font, shorten(DamageStatsText.string("label.note", note), right - left - 14),
                         left + 7, detailY + 15, 0x8F8F8F, false);
                 detailY += DETAIL_HEIGHT;
@@ -306,7 +307,7 @@ public final class DamageTraceScreen extends Screen {
                     .reversed().thenComparingInt(IndexedStep::originalIndex));
             case MOD_GROUP -> sorted.sort(Comparator
                     .comparing((IndexedStep value) -> modName(value.step.source().modId()))
-                    .thenComparing(value -> value.step.source().displayName())
+                    .thenComparing(value -> DamageStatsText.resolve(value.step.source().displayName()))
                     .thenComparingInt(IndexedStep::originalIndex));
             case ACTUAL_ORDER -> { }
         }

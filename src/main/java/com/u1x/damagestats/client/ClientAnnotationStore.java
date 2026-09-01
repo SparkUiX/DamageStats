@@ -1,5 +1,6 @@
 package com.u1x.damagestats.client;
 
+import com.u1x.damagestats.DamageStatsText;
 import com.u1x.damagestats.trace.DamageStep;
 import com.u1x.damagestats.trace.AttributionConfidence;
 import com.u1x.damagestats.trace.DamageContributionCalculator;
@@ -73,7 +74,7 @@ public final class ClientAnnotationStore {
                 + step.source().kind() + " · " + step.source().id();
         if (step.confidence() == AttributionConfidence.UNKNOWN) {
             result += " · " + DamageContributionCalculator.operationSignature(step);
-            if (step.note() != null && !step.note().isBlank()) result += " · " + step.note();
+            if (step.note() != null && !step.note().isBlank()) result += " · " + DamageStatsText.resolve(step.note());
         }
         return result;
     }

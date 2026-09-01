@@ -1,5 +1,6 @@
 package com.u1x.damagestats.trace;
 
+import com.u1x.damagestats.DamageStatsText;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -41,8 +42,9 @@ final class GenericSourceInference {
         if (!item.isEmpty()) {
             ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item.getItem());
             ContributionSource source = new ContributionSource(original.modId(), original.kind(), original.id(),
-                    item.getHoverName().getString() + "（可能物品）", item, ItemStack.EMPTY, null);
-            return new Result(source, "通用推断：监听器名称与攻击参与实体持有/装备物品 " + itemId + " 匹配");
+                    DamageStatsText.encoded("source.possible_item", item.getHoverName()),
+                    item, ItemStack.EMPTY, null);
+            return new Result(source, DamageStatsText.encoded("note.inferred_item", itemId));
         }
         return null;
     }
@@ -58,9 +60,9 @@ final class GenericSourceInference {
                         new EnchantmentInstance(entry.getKey(), entry.getValue()));
                 String enchantmentName = entry.getKey().getFullname(entry.getValue()).getString();
                 ContributionSource source = new ContributionSource(original.modId(), original.kind(), original.id(),
-                        enchantmentName + "（可能附魔）", stack, book, null);
-                return new Result(source, "通用推断：监听器名称与附魔 " + id + " 匹配；当前物品："
-                        + stack.getHoverName().getString() + "；第二图标为对应附魔书");
+                        DamageStatsText.encoded("source.possible_enchantment", enchantmentName), stack, book, null);
+                return new Result(source, DamageStatsText.encoded("note.inferred_enchantment",
+                        id, stack.getHoverName()));
             }
         }
         return null;
@@ -74,9 +76,11 @@ final class GenericSourceInference {
             EffectPreview preview = new EffectPreview(id.toString(), owner.effect().getAmplifier(),
                     owner.effect().getDuration());
             ContributionSource source = new ContributionSource(original.modId(), original.kind(), original.id(),
-                    owner.effect().getEffect().getDisplayName().getString() + "（可能状态效果）",
+                    DamageStatsText.encoded("source.possible_effect",
+                            owner.effect().getEffect().getDisplayName()),
                     ItemStack.EMPTY, ItemStack.EMPTY, preview);
-            return new Result(source, "通用推断：监听器名称与" + owner.owner() + "当前状态效果 " + id + " 匹配");
+            return new Result(source, DamageStatsText.encoded("note.inferred_effect",
+                    DamageStatsText.text(owner.owner()), id));
         }
         return null;
     }
@@ -108,9 +112,9 @@ final class GenericSourceInference {
 
     private static List<EffectOwner> collectEffects(Player attacker, Entity target) {
         List<EffectOwner> effects = new ArrayList<>();
-        for (MobEffectInstance effect : attacker.getActiveEffects()) effects.add(new EffectOwner(effect, "攻击者"));
+        for (MobEffectInstance effect : attacker.getActiveEffects()) effects.add(new EffectOwner(effect, "owner.attacker"));
         if (target instanceof LivingEntity living) {
-            for (MobEffectInstance effect : living.getActiveEffects()) effects.add(new EffectOwner(effect, "目标"));
+            for (MobEffectInstance effect : living.getActiveEffects()) effects.add(new EffectOwner(effect, "owner.target"));
         }
         return effects;
     }

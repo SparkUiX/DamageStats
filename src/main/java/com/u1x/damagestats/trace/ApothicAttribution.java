@@ -1,5 +1,6 @@
 package com.u1x.damagestats.trace;
 
+import com.u1x.damagestats.DamageStatsText;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.player.Player;
@@ -16,14 +17,16 @@ final class ApothicAttribution {
     static Attribution criticalEvent(CriticalHitEvent event) {
         if (!loaded() || Math.abs(event.getDamageModifier() - event.getOldDamageModifier()) <= EPSILON) {
             return new Attribution(
-                    ContributionSource.vanilla("critical_hit_event", "原版/Forge 暴击"),
+                    ContributionSource.vanilla("critical_hit_event", DamageStatsText.encoded("source.critical")),
                     AttributionConfidence.EXACT,
                     "CriticalHitEvent ×" + DamageTraceFormatter.number(event.getDamageModifier()));
         }
         return new Attribution(
-                new ContributionSource("attributeslib", "attribute", "attributeslib:crit_damage", "Apothic Attributes 暴击伤害"),
+                new ContributionSource("attributeslib", "attribute", "attributeslib:crit_damage",
+                        DamageStatsText.encoded("source.apothic_crit_damage")),
                 AttributionConfidence.INFERRED,
-                "暴击修正由事件值变化推断；最终事件值 ×" + DamageTraceFormatter.number(event.getDamageModifier()));
+                DamageStatsText.encoded("note.apothic_crit_damage",
+                        DamageTraceFormatter.number(event.getDamageModifier())));
     }
 
     static Attribution hurtEvent(Player attacker, float before, float after) {
@@ -41,9 +44,10 @@ final class ApothicAttribution {
         int rolls = matchingCriticalRolls(chance, critDamage, observed);
         if (rolls > 0) {
             return new Attribution(
-                    new ContributionSource("attributeslib", "attribute", "attributeslib:crit_chance", "Apothic Attributes 额外暴击"),
+                    new ContributionSource("attributeslib", "attribute", "attributeslib:crit_chance",
+                            DamageStatsText.encoded("source.apothic_extra_crit")),
                     AttributionConfidence.INFERRED,
-                    "观测倍率与 AttributesLib 暴击算法匹配；暴击层数 " + rolls);
+                    DamageStatsText.encoded("note.apothic_extra_crit", rolls));
         }
         return null;
     }

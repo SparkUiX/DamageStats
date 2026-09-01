@@ -1,5 +1,6 @@
 package com.u1x.damagestats.trace;
 
+import com.u1x.damagestats.DamageStatsText;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.ASMEventHandler;
 import net.minecraftforge.eventbus.api.Event;
@@ -19,7 +20,7 @@ final class ForgeEventCandidates {
     }
 
     static String describe(Event event, EventPriority... priorities) {
-        if (FORGE_BUS_ID < 0) return "Forge EventBus 候选监听器枚举不可用";
+        if (FORGE_BUS_ID < 0) return DamageStatsText.encoded("note.candidates.unavailable");
         Set<EventPriority> accepted = Set.copyOf(Arrays.asList(priorities));
         LinkedHashSet<String> names = new LinkedHashSet<>();
         int total = 0;
@@ -30,9 +31,10 @@ final class ForgeEventCandidates {
             total++;
             if (names.size() < MAX_CANDIDATES) names.add(name);
         }
-        if (names.isEmpty()) return "该优先级区间未枚举到 ASM 监听器（可能是动态 Consumer）";
+        if (names.isEmpty()) return DamageStatsText.encoded("note.candidates.none");
         String result = String.join("; ", names);
-        return total > names.size() ? result + "; ... 共 " + total + " 个候选" : result;
+        return total > names.size()
+                ? DamageStatsText.encoded("note.candidates.truncated", result, total) : result;
     }
 
     private static int findForgeBusId() {

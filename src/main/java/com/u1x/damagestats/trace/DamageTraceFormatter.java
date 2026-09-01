@@ -17,7 +17,7 @@ public final class DamageTraceFormatter {
     public static Component summary(DamageTrace trace) {
         MutableComponent result = DamageStatsText.text("message.summary.prefix", trace.sequence()).copy()
                 .withStyle(ChatFormatting.GOLD)
-                .append(Component.literal(trace.weapon().displayName()).withStyle(ChatFormatting.AQUA))
+                .append(DamageStatsText.component(trace.weapon().displayName()).withStyle(ChatFormatting.AQUA))
                 .append(DamageStatsText.text("message.summary.target", trace.targetName()))
                 .append(Component.literal(number(trace.calculatedDamage())).withStyle(ChatFormatting.RED));
         if (Math.abs(trace.calculatedDamage() - trace.actualHealthLoss()) > 0.0001F) {
@@ -38,14 +38,15 @@ public final class DamageTraceFormatter {
             ChatFormatting color = step.confidence() == AttributionConfidence.UNKNOWN
                     ? ChatFormatting.YELLOW : ChatFormatting.GRAY;
             String operation = operation(step.before(), step.after());
-            String source = step.source().displayName();
+            Component source = DamageStatsText.component(step.source().displayName());
             String confidence = DamageStatsText.confidence(step.confidence()).getString();
             MutableComponent line = DamageStatsText.text("message.detail.prefix", index++,
                             DamageStatsText.stage(step.stage())).copy()
                     .append(Component.literal(number(step.before()) + " " + operation + " → " + number(step.after())))
                     .append(DamageStatsText.text("message.detail.source", source, confidence).withStyle(color));
             if (step.note() != null && !step.note().isBlank()) {
-                line.append(Component.literal("  " + step.note()).withStyle(ChatFormatting.DARK_GRAY));
+                line.append(Component.literal("  ").append(DamageStatsText.component(step.note()))
+                        .withStyle(ChatFormatting.DARK_GRAY));
             }
             lines.add(line);
         }
