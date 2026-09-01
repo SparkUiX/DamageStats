@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    "damagestatstest:add_attack_charm",
+    "damagestatstest:multiply_attack_charm"
+  ]
+}

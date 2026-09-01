@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8.5",
+  "package": "com.u1x.damagestats.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "damagestats.refmap.json",
+  "mixins": [
+    "ForgeHooksMixin",
+    "LivingEntityMixin",
+    "PlayerAttackMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

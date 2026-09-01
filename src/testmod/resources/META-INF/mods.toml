@@ -1,0 +1,23 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="All Rights Reserved"
+
+[[mods]]
+modId="damagestatstest"
+version="1.0.0"
+displayName="Damage Stats Test Fixtures"
+description='''Development-only Curios attribution fixtures.'''
+
+[[dependencies.damagestatstest]]
+modId="damagestats"
+mandatory=true
+versionRange="[0.1.0,)"
+ordering="AFTER"
+side="BOTH"
+
+[[dependencies.damagestatstest]]
+modId="curios"
+mandatory=true
+versionRange="[5.14.1,)"
+ordering="AFTER"
+side="BOTH"
