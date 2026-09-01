@@ -1,7 +1,11 @@
 # 伤害溯源 / Damage Stats
 
-**当前版本 / Current version:** `0.1.1`  
-**适用环境 / Target:** Minecraft `1.20.1` · Forge `47+`  
+<p align="center">
+  <img src="src/main/resources/damagestats.png" alt="伤害溯源图标" width="116" height="117">
+</p>
+
+**当前版本 / Current version:** `0.1.2`<br>
+**适用环境 / Target:** Minecraft `1.20.1` · Forge `47+`<br>
 **许可证 / License:** MIT
 
 伤害溯源会把一次攻击从面板属性、暴击与附魔，一路拆解到 Forge 事件、护甲、魔法减伤、吸收和最终实际扣血。它面向想弄清“这一刀为什么是这个数字”的玩家、整合包作者与模组开发者，并明确区分精确记录、合理推断和未知来源。
@@ -11,6 +15,8 @@ Damage Stats turns one hit into a readable damage pipeline—from attributes, co
 界面完整支持简体中文与英语，并提供日本语、俄语、繁體中文（台湾／香港）适配；Minecraft 1.20.1 的其他标准语言会使用英语回退。
 
 The interface fully supports Simplified Chinese and English, with Japanese, Russian, and Traditional Chinese (Taiwan/Hong Kong) adaptations. Other standard Minecraft 1.20.1 locales use the English fallback.
+
+![Damage Breakdown interface](docs/images/damage-breakdown.png)
 
 ## 命令 / Commands
 
