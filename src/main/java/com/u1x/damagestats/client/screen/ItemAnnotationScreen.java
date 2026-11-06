@@ -76,6 +76,7 @@ final class ItemAnnotationScreen extends Screen {
             return false;
         }
         int column = (int) (mouseX - gridLeft()) / CELL;
+        if (column >= columns()) return false;
         int row = (int) (mouseY - 52 + scroll) / CELL;
         int index = row * columns() + column;
         if (index >= 0 && index < items.size()) {
